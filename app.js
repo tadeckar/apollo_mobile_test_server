@@ -7,11 +7,36 @@ var bodyParser = require('body-parser');
 var WebSocketServer = require('ws').Server
   , wss = new WebSocketServer({ port: 8080 });
 
+var wsClients = [];
 wss.on('connection', function connection(ws) {
     console.log('WebSocket Connection Established...');
+    wsClients.push(ws);
+    var data = {
+        'request':'connect',
+        'username':'lab',
+        'password':'lab',
+        'host':'172.18.194.55'
+    };
+    ws.send(JSON.stringify(data));
+    var command = {
+        'request':'command',
+        'commandString':'en'
+    }
+    var command2 = {
+        'request':'command',
+        'commandString':'lab'
+    }
+    setTimeout(function () {
+        ws.send(JSON.stringify(command));
+        ws.send(JSON.stringify(command2));
+    }, 2000);
+
     ws.on('message', function incoming(message) {
         console.log('received: %s', message);
-        ws.send(message);
+
+        wsClients.forEach(function(val,i,array) {
+            //val.send(message);
+        });
     });
 });
 

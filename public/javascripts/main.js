@@ -1,18 +1,49 @@
-var url = 'ws://10.150.30.31:8080';
-var ws = new WebSocket(url);
 var heldKeys = [];
 
-ws.onopen = function() {
-    console.log("Opened WebSocket connection");
-}
-
-ws.onmessage = function (event) {
-    console.log('Websocket Return: ' + event.data);
-    $('#term').html($('#term').html() + event.data);
-    $('#term').animate({scrollTop: $('#term').prop("scrollHeight")}, 200);
-};
 
 $(function () {
+    var ws, url;
+    if (window.ctsapp) {
+        url = 'ws://' + ctsapp.getDeviceIP() + ':5000';
+        console.log(url);
+        ws = new WebSocket(url);
+    } else {
+        url = 'ws://10.150.30.185:5000';
+        console.log(url);
+        ws = new WebSocket(url);
+        ws.binaryType = 'arraybuffer';
+    }
+    ws.onopen = function() {
+        console.log("Opened WebSocket connection");
+        var data = {
+            'request':'connect',
+            'username':'lab',
+            'password':'lab',
+            'host':'172.18.194.55'
+        };
+        ws.send(JSON.stringify(data));
+        var command = {
+            'request':'command',
+            'commandString':'en'
+        }
+        var command2 = {
+            'request':'command',
+            'commandString':'lab'
+        }
+        setTimeout(function (){
+            ws.send(JSON.stringify(command));
+            ws.send(JSON.stringify(command2));
+        }, 1000);
+    }
+
+    ws.onmessage = function (event) {
+        console.log(event.data);
+        console.log('Websocket Return: ' + ab2str(event.data));
+        $('#term').html($('#term').html() + ab2str(event.data).replace("\n", " <br /> %> "));
+        $('#term').animate({scrollTop: $('#term').prop("scrollHeight")}, 200);
+    };
+
+
     $('#getChar').focus();
 
     $('#getChar').on('input', function (event) {
@@ -69,3 +100,43 @@ function str2ab(str) {
 $(document).unload(function () {
     ws.close();
 });
+
+function focusOnHiddenInput () {
+    $('#getChar').focus();
+}
+
+function test (message) {
+    console.log(message);
+}
+
+function blobToUint8Array(b) {
+    var uri = URL.createObjectURL(b),
+        xhr = new XMLHttpRequest(),
+        i,
+        ui8;
+
+    xhr.open('GET', uri, false);
+    xhr.send();
+
+    URL.revokeObjectURL(uri);
+
+    ui8 = new Uint8Array(xhr.response.length);
+
+    for (i = 0; i < xhr.response.length; ++i) {
+        ui8[i] = xhr.response.charCodeAt(i);
+    }
+
+    return ui8;
+}
+
+function bin2String(array) {
+  var result = "";
+  for (var i = 0; i < array.length; i++) {
+    result += String.fromCharCode(parseInt(array[i], 2));
+  }
+  return result;
+}
+
+function convert(data) {
+     return new ArrayBuffer(data);
+}
