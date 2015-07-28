@@ -4,7 +4,7 @@ var heldKeys = [];
 $(function () {
     var ws, url;
     if (window.ctsapp) {
-        url = 'ws://' + ctsapp.getDeviceIP() + ':5000';
+        url = 'ws://' + '127.0.0.1' + ':5000';
         console.log(url);
         ws = new WebSocket(url);
     } else {
@@ -22,23 +22,96 @@ $(function () {
             'host':'172.18.194.55'
         };
         ws.send(JSON.stringify(data));
-        var command = {
-            'request':'command',
-            'commandString':'en'
-        }
-        var command2 = {
-            'request':'command',
-            'commandString':'lab'
-        }
-        setTimeout(function (){
-            ws.send(JSON.stringify(command));
-            ws.send(JSON.stringify(command2));
-        }, 1000);
+        
     }
 
     ws.onmessage = function (event) {
         console.log(event.data);
+        console.log(event.type);
         console.log('Websocket Return: ' + ab2str(event.data));
+        
+        if (event.data instanceof Blob) {
+            
+        } else if (typeof event.data === 'string'){
+            console.log('parsed json' + JSON.stringify(event.data));
+            var jsonobj = JSON.parse(event.data);
+            console.log('parsed json == ' + jsonobj.request);
+            var str1 = JSON.stringify(jsonobj.request);
+            console.log('request == ' + str1);
+            if ('onConnect'.localeCompare(str1)) {
+                var command = {
+                    'request':'sendChar',
+                    'key':101
+                }
+                var command2 = {
+                   'request':'sendChar',
+                   'key':110
+                }
+                var command3 = {
+                    'request':'sendChar',
+                    'key':13
+                }
+                var command4 = {
+                    'request':'sendChar',
+                    'key':114
+                }
+                var command5 = {
+                    'request':'sendChar',
+                    'key':108
+                }
+                var command6 = {
+                    'request':'sendChar',
+                    'key':97
+                }
+                var command7 = {
+                    'request':'sendChar',
+                    'key':98
+                }
+
+                var disconnect = {
+                    'request':'disconnect'
+                }
+                var newline = {
+                    'request':'sendChar',
+                    'key':110
+                }
+
+                var shRun = {
+                    'request':'sendLine',
+                    'text':'sh run\r'
+                }
+
+                var qcode = {
+                    'request':'sendLine',
+                    'text':'q'
+                }
+
+                var disable = {
+                    'request':'sendLine',
+                    'text':'disable\r'
+                }
+
+                setTimeout(function (){
+                     ws.send(JSON.stringify(command));
+                     ws.send(JSON.stringify(command2));
+                     ws.send(JSON.stringify(command3));                  
+                     ws.send(JSON.stringify(command5));
+                     ws.send(JSON.stringify(command6));
+                     ws.send(JSON.stringify(command7));
+                     ws.send(JSON.stringify(command3));
+                     ws.send(JSON.stringify(shRun));
+                     ws.send(JSON.stringify(qcode));
+                     ws.send(JSON.stringify(disable));
+                }, 1000);
+
+                setTimeout(function (){
+                    ws.send(JSON.stringify(disconnect));
+                }, 10000);
+
+
+            }
+
+        }
         $('#term').html($('#term').html() + ab2str(event.data).replace("\n", " <br /> %> "));
         $('#term').animate({scrollTop: $('#term').prop("scrollHeight")}, 200);
     };
@@ -96,6 +169,7 @@ function str2ab(str) {
   }
   return buf;
 }
+
 
 $(document).unload(function () {
     ws.close();
