@@ -4,11 +4,11 @@ var heldKeys = [];
 $(function () {
     var ws, url;
     if (window.ctsapp) {
-        url = 'ws://' + '127.0.0.1' + ':5000';
+        url = 'ws://' + window.ctsapp.getDeviceIP() + ':5000';
         console.log(url);
         ws = new WebSocket(url);
     } else {
-        url = 'ws://10.150.30.185:5000';
+        url = 'ws://10.150.28.247:5000';
         console.log(url);
         ws = new WebSocket(url);
         ws.binaryType = 'arraybuffer';
@@ -22,16 +22,16 @@ $(function () {
             'host':'172.18.194.55'
         };
         ws.send(JSON.stringify(data));
-        
+
     }
 
     ws.onmessage = function (event) {
         console.log(event.data);
         console.log(event.type);
         console.log('Websocket Return: ' + ab2str(event.data));
-        
+
         if (event.data instanceof Blob) {
-            
+
         } else if (typeof event.data === 'string'){
             console.log('parsed json' + JSON.stringify(event.data));
             var jsonobj = JSON.parse(event.data);
@@ -91,10 +91,10 @@ $(function () {
                     'text':'disable\r'
                 }
 
-                setTimeout(function (){
+                /*setTimeout(function (){
                      ws.send(JSON.stringify(command));
                      ws.send(JSON.stringify(command2));
-                     ws.send(JSON.stringify(command3));                  
+                     ws.send(JSON.stringify(command3));
                      ws.send(JSON.stringify(command5));
                      ws.send(JSON.stringify(command6));
                      ws.send(JSON.stringify(command7));
@@ -106,13 +106,13 @@ $(function () {
 
                 setTimeout(function (){
                     ws.send(JSON.stringify(disconnect));
-                }, 10000);
+                }, 10000);*/
 
 
             }
 
         }
-        $('#term').html($('#term').html() + ab2str(event.data).replace("\n", " <br /> %> "));
+        $('#term').html($('#term').html() + ab2str(event.data).replace("\n", "<br />").replace(/[\n\r]/g, " <br />"));
         $('#term').animate({scrollTop: $('#term').prop("scrollHeight")}, 200);
     };
 
@@ -123,26 +123,23 @@ $(function () {
         if (ws.readyState === 1) {
             var s = $(this).val();
             $(this).val('');
-            ws.send(s);
+            var data = {
+                'request':'sendChar',
+                'key': s.charCodeAt(0)
+            };
+            ws.send(JSON.stringify(data));
         }
     });
 
     $('#getChar').on('keyup', function (event) {
-        while(heldKeys.indexOf(event.which) !== -1) {
-            heldKeys.splice(heldKeys.indexOf(event.which), 1);
-        }
+        console.log(event.which);
         if (ws.readyState === 1) {
-            if (event.which === 8) {
-                ws.send(" backspace ");
-            } else if (event.which === 13) {
-                ws.send(" <br /> %> ");
-            } else if (event.which === 16) {
-                ws.send(" shift ");
-            } else if (event.which === 32) {
-                ws.send(" spacebar ");
-            } else if (event.which === 67 && heldKeys.indexOf(17) !== -1) {
-                ws.send(" Ctrl-C <br /> Exiting...");
-                $('#getChar').blur();
+            if (event.which === 13) {
+                var data = {
+                    'request':'sendChar',
+                    'key': 13
+                };
+                ws.send(JSON.stringify(data));
             }
         }
     });
