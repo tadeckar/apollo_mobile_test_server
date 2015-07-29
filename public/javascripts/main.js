@@ -4,9 +4,10 @@ var heldKeys = [];
 $(function () {
     var ws, url;
     if (window.ctsapp) {
-        url = 'ws://' + window.ctsapp.getDeviceIP() + ':5000';
+        url = 'ws://127.0.0.1:5000';
         console.log(url);
         ws = new WebSocket(url);
+        ws.binaryType = 'arraybuffer';
     } else {
         url = 'ws://10.150.28.247:5000';
         console.log(url);
